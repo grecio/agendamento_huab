@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="agendamento">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>HUAB - agendamento</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="css/agendamento.css" rel="stylesheet">
+
+  <script src="js/angular.min.js"></script>
+  <script src="js/angular-input-masks-standalone.min.js"></script>
+  <script src="js/mask.min.js"></script>
+
+
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/3.6.6/firebase.js"></script>
+
+  <!-- AngularFire -->
+  <script src="https://cdn.firebase.com/libs/angularfire/2.3.0/angularfire.min.js"></script>
+
+
+  <script src="agendamento.js"></script>
+
+
+
+  <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyApygNSgZn-UgWwcoCqMCzxbg8a_WHTuic",
+      authDomain: "agendamentohuab.firebaseapp.com",
+      databaseURL: "https://agendamentohuab.firebaseio.com",
+      projectId: "agendamentohuab",
+      storageBucket: "agendamentohuab.appspot.com",
+      messagingSenderId: "666564374061"
+    };
+    firebase.initializeApp(config);
+  </script>
+
+
+</head>
+
+<body ng-controller="agendamentoCtrl">
+
+  <div class="container">
+    <div class="header clearfix">
+      <nav>
+        <ul class="nav nav-pills float-right">
+          <li class="nav-item">
+            <a class="nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
+          </li>
+        </ul>
+      </nav>
+      <h3 class="text-muted">HUAB - Agendamento</h3>
+    </div>
+
+    <div class="jumbotron" ng-show="agendamentoRealizado">
+      <h1 class="display-3">Agendamento Realizado!</h1>    
+      <p><a class="btn btn-lg btn-success" role="button" ng-click="exibirForm()">Novo Agendamento</a></p>
+
+    </div>
+
+
+    <div class="jumbotron" ng-show="exibeForm === false && !agendamentoRealizado">
+      <h1 class="display-3">Bem vindo!</h1>
+      <p class="lead">Solicite o agendamento da entrega dos seus títulos.</p>
+      <p><a class="btn btn-lg btn-success" role="button" ng-click="exibirForm()">Agendar</a></p>
+
+    </div>
+
+    <div ng-show="exibeForm === true && !agendamentoRealizado">
+      <h1 class="display-3">Agendamento</h1>
+      <br />
+      <form class="frm">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="form-group">
+              <label for="inputEmail3" class="col-sm-2 control-label">SIAPE</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="siape" ui-mask="9?9?9?9?9?9?9" ng-model="agendamento.siape" ng-change="buscar()"
+                  ng-model-options="{updateOn: 'blur'}">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Nome</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="nome" ng-model="agendamento.nome" disabled>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Dia</label>
+              <div class="col-sm-10">
+                <select class="form-control" ng-change="preencherHorarios()" ng-model="agendamento.dia">
+                <option value="02">02</option>
+                <option value="03">03</option>
+                <option value="04">04</option>
+                <option value="05">05</option>
+                <option value="09">09</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>                
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+                <option value="19">19</option>                
+
+              </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Horário</label>
+              <div class="col-sm-10">
+                <select class="form-control" ng-options="item as item.hora for item in agendamento.disponiveis" ng-model="horarioSelectedItem">
+                  </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <button type="button" class="btn btn-primary" ng-click="agendar()">Agendar</button>
+                <button type="button" class="btn btn-defatul" ng-click="voltar()">Voltar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="row marketing">
+      <div class="col-lg-6">
+        <h4>Informações</h4>
+        <p>Período: 02 a 05, 09 a 12 e 15 a 19 de maio</p>
+        <p>Horário: 8h às 11:40 - 13h às 16:40</p>
+      </div>
+
+      <div class="col-lg-6">
+        <h4>Contato</h4>
+        <p>jessica.mendes@ebserh.gov.br</p>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>&copy; huab 2017</p>
+    </footer>
+
+
+
+  </div>
+  <!-- /container -->
+
+</body>
+
+</html>
