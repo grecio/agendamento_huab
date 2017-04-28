@@ -9,7 +9,8 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
 
     $scope.agendamento = {
         siape: null,
-        nome: ''
+        nome: '',
+        dia: ''
     };
 
 
@@ -26,12 +27,13 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
         $scope.exibeForm = true;
         $scope.agendamentoRealizado = null;
 
+        $scope.data = $firebaseObject(ref);
+
         $scope.data.$loaded()
             .then(function () {
 
                 $scope.funcionarios = $scope.data.funcionarios;
                 $scope.horarios = $scope.data.horarios;
-
                 $scope.agendamentos = $firebaseArray(ref.child("agendamentos"));
 
             })
@@ -42,8 +44,11 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
     };
 
     $scope.voltar = function () {
+
+        $scope.resetForm();
+
         $scope.exibeForm = false;
-        $scope.agendamentoRealizado = null;
+
     };
 
 
@@ -53,30 +58,42 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
             return item.siape === parseInt($scope.agendamento.siape);
         });
 
-        if (item.length)
+        if (item.length) {
             $scope.agendamento.nome = item[0].nome;
+        }
 
     };
 
     $scope.preencherHorarios = function () {
-        $scope.agendamento.disponiveis = $scope.horarios[$scope.agendamento.dia].disponiveis;
 
-        console.info($scope.agendamento.disponiveis);
+        $scope.agendamento.disponiveis = $firebaseArray(ref.child("horarios").child($scope.agendamento.dia).child('disponiveis'));
+
     };
 
     $scope.agendar = function () {
 
-        console.info($scope.agendamentos[0]);
+
+        var _hora = $scope.horarioSelectedItem.hora;
 
         $scope.agendamentos.$add({
             siape: $scope.agendamento.siape,
             nome: $scope.agendamento.nome,
             horario: {
                 dia: $scope.agendamento.dia,
-                hora: $scope.horarioSelectedItem.hora
+                hora: _hora
             }
         }).then(function () {
-            $scope.agendamentoRealizado = true;
+
+            $firebaseObject(ref.child("horarios").child($scope.agendamento.dia)
+                .child("disponiveis").orderByChild('hora').equalTo($scope.horarioSelectedItem.hora)).$remove().then(function () {
+                    $firebaseArray(ref.child("horarios").child($scope.agendamento.dia).child("indisponiveis")).$add(
+                        {
+                            hora: _hora
+                        }).then(function () {
+                            $scope.agendamentoRealizado = true;
+
+                        });
+                });
         });
     };
 
