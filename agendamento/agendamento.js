@@ -13,7 +13,7 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
         dia: ''
     };
 
-
+    $scope.tituloBotao = 'Agendar';
     $scope.data = $firebaseObject(ref);
     $scope.funcionarios = [];
     $scope.horarios = [];
@@ -36,6 +36,8 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
                 $scope.horarios = $scope.data.horarios;
                 $scope.agendamentos = $firebaseArray(ref.child("agendamentos"));
 
+                $scope.agendamentos = $scope.agendamentos.sort();
+
             })
             .catch(function (err) {
                 console.error(err);
@@ -46,7 +48,6 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
     $scope.voltar = function () {
 
         $scope.resetForm();
-
         $scope.exibeForm = false;
 
     };
@@ -59,6 +60,7 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
         });
 
         if (item.length) {
+            $scope.tituloBotao = 'Reagendar';
             $scope.agendamento.nome = item[0].nome;
         }
 
@@ -72,7 +74,39 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
 
     $scope.agendar = function () {
 
+        var item = $scope.agendamentos.filter(function (item) {
+            return item.siape === $scope.agendamento.siape;
+        });
 
+        if (item.length) {
+            
+            var dia = item[0].horario.dia;
+            var hora = item[0].horario.hora;
+
+            $scope.agendamentos.$remove(item[0]).then(function () {
+
+                $firebaseArray(ref.child("horarios").child(dia)
+                    .child("disponiveis")).$add({ hora: hora }).then(function () {
+                        $scope.agendamentos.$add({
+                            siape: $scope.agendamento.siape,
+                            nome: $scope.agendamento.nome,
+                            horario: {
+                                dia: $scope.agendamento.dia,
+                                hora: $scope.horarioSelectedItem.hora
+                            }
+                        }).then(function () {
+
+                            $firebaseObject(ref.child("horarios").child($scope.agendamento.dia)
+                                .child("disponiveis").orderByChild('hora').equalTo($scope.horarioSelectedItem.hora)).$remove().then(function () {
+                                    $scope.agendamentoRealizado = true;
+                                });
+                        });
+                    });
+            });
+
+            return;
+        }
+        
         var _hora = $scope.horarioSelectedItem.hora;
 
         $scope.agendamentos.$add({
@@ -86,15 +120,10 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
 
             $firebaseObject(ref.child("horarios").child($scope.agendamento.dia)
                 .child("disponiveis").orderByChild('hora').equalTo($scope.horarioSelectedItem.hora)).$remove().then(function () {
-                    $firebaseArray(ref.child("horarios").child($scope.agendamento.dia).child("indisponiveis")).$add(
-                        {
-                            hora: _hora
-                        }).then(function () {
-                            $scope.agendamentoRealizado = true;
-
-                        });
+                    $scope.agendamentoRealizado = true;
                 });
         });
+
     };
 
     $scope.resetForm = function () {
@@ -103,8 +132,8 @@ agendamentoApp.controller('agendamentoCtrl', function ($scope, $http, $window, $
             siape: null,
             nome: ''
         };
-
-        $scope.funcionarios.length = 0;
+        $scope.tituloBotao = 'Agendar';
+         $scope.funcionarios.length = 0;
         $scope.horarios.length = 0;
         $scope.agendamentos = null;
         $scope.agendamentoRealizado = null;
